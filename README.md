@@ -13,4 +13,6 @@ As a side effect, memory consumption within the PowerShell host process will bal
 ```
 Note: Using a PSJob means the Input and Output objects will be serialized to cross the process boundries. This may have side-effects. Be aware of how your objects behave with serialization before using a PSJob.
 
+Also added a -quiet switch to suppress the Write-Progress calls. 
+
 Changes have been submitted upstream in https://github.com/RamblingCookieMonster/PowerShell/pull/1
