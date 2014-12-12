@@ -7,7 +7,7 @@ As a side effect, memory consumption within the PowerShell host process will bal
     param($tasks, $scriptblock) 
     . .\PathTo\Invoke-Parallel.ps1
     $sb = [scriptblock]::Create($scriptblock) # $scriptblock gets passed as [String], convert back to [ScriptBlock]
-    $tasks | Invoke-Parallel -ScriptBlock $sb -noCloseOnTimeout
+    $tasks | Invoke-Parallel -ScriptBlock $sb -noCloseOnTimeout -quiet
   } -ArgumentList $tasks, $scriptblock
   $results = Wait-Job $myJob | Receive-Job
 ```
