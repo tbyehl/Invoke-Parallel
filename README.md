@@ -11,4 +11,6 @@ As a side effect, memory consumption within the PowerShell host process will bal
   } -ArgumentList $tasks, $scriptblock
   $results = Wait-Job $myJob | Receive-Job
 ```
+Note: Using a PSJob means the Input and Output objects will be serialized to cross the process boundries. This may have side-effects. Be aware of how your objects behave with serialization before using a PSJob.
+
 Changes have been submitted upstream in https://github.com/RamblingCookieMonster/PowerShell/pull/1
