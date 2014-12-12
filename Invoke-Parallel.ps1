@@ -54,6 +54,10 @@
 
         Path to a file where we can log results, including run time for each thread, whether it completes, completes with errors, or times out.
 
+	.PARAMETER quiet
+
+		Disable progress bar.
+
     .EXAMPLE
         Each example uses Test-ForPacs.ps1 which includes the following code:
             param($computer)
@@ -63,7 +67,8 @@
                     Computer=$computer;
                     Available=1;
                     Kodak=$(
-                        if((test-path "\\$computer\c$\users\public\desktop\Kodak Direct View Pacs.url") -or (test-path "\\$computer\c$\documents and settings\all users
+                        if((test-path "\\$computer\c$\users\public\desktop\Kodak Direct View Pacs.url") -or (test-path "\\$computer\c$\documents and settings\all users
+
         \desktop\Kodak Direct View Pacs.url") ){"1"}else{"0"}
                     )
                 }
@@ -148,7 +153,9 @@
             ),
 
         [validatescript({test-path (Split-Path $_ -parent)})]
-            [string]$logFile = "C:\temp\log.log"
+            [string]$logFile = "C:\temp\log.log",
+
+			[switch] $quiet=$false
     )
     
     Begin {
@@ -168,10 +175,12 @@
                     $more = $false
 
                     #Progress bar if we have inputobject count (bound parameter)
-                    Write-Progress  -Activity "Running Query"`
-                        -Status "Starting threads"`
-                        -CurrentOperation "$startedCount threads defined - $totalCount input objects - $script:completedCount input objects processed"`
-                        -PercentComplete ($script:completedCount / $totalCount * 100)
+                    if (!$quiet) {
+						Write-Progress  -Activity "Running Query"`
+							-Status "Starting threads"`
+							-CurrentOperation "$startedCount threads defined - $totalCount input objects - $script:completedCount input objects processed"`
+							-PercentComplete ($script:completedCount / $totalCount * 100)
+					}
 
                     #run through each runspace.           
                     Foreach($runspace in $runspaces) {
@@ -387,9 +396,11 @@
         Write-Verbose ( "Finish processing the remaining runspace jobs: {0}" -f (@(($runspaces | Where {$_.Runspace -ne $Null}).Count)) )
         Get-RunspaceData -wait
 
-		Write-Progress -Activity "Running Query"`
-			-Status "Starting threads"`
-			-Completed
+        if (!$quiet) {
+			Write-Progress -Activity "Running Query"`
+				-Status "Starting threads"`
+				-Completed
+		}
 
 		if ( ($timedOutTasks -eq $false) -or (($timedOutTasks -eq $true) -and ($noCloseOnTimeout -eq $false)) ) {
 	        Write-Verbose "Closing the runspace pool"
