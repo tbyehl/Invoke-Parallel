@@ -17,7 +17,7 @@ Note: Using a PSJob means the Input and Output objects will be serialized to cro
 
 Also added a -quiet switch to suppress the Write-Progress calls.
 
-Another tip: The output will not invlude any objects whose thread timed out. For example, if you passed in 2,000 objects and 100 of them timed out, you will receive 1,900 object on the pipeline. If you want to preserve the original objects you can use a patten like this:
+Another tip: The output will not invlude any objects whose thread timed out. For example, if you passed in 2,000 objects and 100 of them timed out, you will receive 1,900 objects on the pipeline. If your input and output objects are of the same type, you can preserve the original input objects using a pattern like this:
 ```
   $tasks = @{} <# your input objects here #>
   $results = $tasks | Invoke-Parallel -Scriptblock { <# your scriptblock here #> }
