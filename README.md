@@ -1,27 +1,30 @@
-This is a fork of Invoke-Parallel that has been tweaked to avoid hangs caused by timed out threads that cannot be closed by adding a -noCloseOnTimeout switch. When the switch is used and a thread times out, the calls to Thread.Dispose() and Runspace.Close() will be skipped. Those calls are synchronous and will never return if threads become non-responsive, as sometimes happens when WMI calls fail in a particular way.
+This is a fork of Invoke-Parallel that has been tweaked with additional parameters and functionality.
 
-As a side effect, memory consumption within the PowerShell host process will balloon because the resources from timed out threads and the runspace itself are never freed. This can be mitigated by using a PSJob to execute Invoke-Parallel:
-```
-  $scriptblock = { <# your scriptblock here #> }
-  $tasks = @{} <# your input objects here #>
-  $myjob = Start-Job -Scriptblock { 
-    param($tasks, $scriptblock) 
-    . .\PathTo\Invoke-Parallel.ps1
-    # $scriptblock gets passed into PSJob as [String], convert back to [ScriptBlock]
-    $sb = [scriptblock]::Create($scriptblock) 
-    $tasks | Invoke-Parallel -ScriptBlock $sb -noCloseOnTimeout -quiet
-  } -ArgumentList $tasks, $scriptblock
-  $results = Wait-Job $myJob | Receive-Job
-```
-Note: Using a PSJob means the Input and Output objects will be serialized to cross the process boundries. This may have side-effects. Be aware of how your objects behave with serialization before using a PSJob.
+-noCloseOnTimeout
 
-Also added a -quiet switch to suppress the Write-Progress calls.
+	Using this switch will cause timed out Threads to not be disposed and the Runspace not to be closed if any timeouts occurred. Calls to Thread.Dispose() and Runspace.Close() are synchronous and will never return if there is a non-responsive thread. WMI calls that fail in a particular way are known to cause the problem that this switch corrects.
 
-Another tip: The output will not include any objects whose thread timed out. For example, if you passed in 2,000 objects and 100 of them timed out, you will receive 1,900 objects on the pipeline. If your input and output objects are of the same type, you can preserve the original input objects using a pattern like this:
-```
-  $tasks = @{} <# your input objects here #>
-  $results = $tasks | Invoke-Parallel -Scriptblock { <# your scriptblock here #> }
-  $results = Compare-Object $results $tasks -IncludeEqual -PassThru `
-    | Select-Object -Property * -ExcludeProperty SideIndicator
-```
+	As a side effect, memory consumption within the PowerShell host process will balloon because the resources from timed out threads and the runspace itself are never freed. This can be mitigated by using a PSJob to execute Invoke-Parallel:
+	```
+	  $scriptblock = { <# your scriptblock here #> }
+	  $tasks = @{} <# your input objects here #>
+	  $myjob = Start-Job -Scriptblock { 
+		param($tasks, $scriptblock) 
+		. .\PathTo\Invoke-Parallel.ps1
+		# $scriptblock gets passed into PSJob as [String], convert back to [ScriptBlock]
+		$sb = [scriptblock]::Create($scriptblock) 
+		$tasks | Invoke-Parallel -ScriptBlock $sb -noCloseOnTimeout -quiet
+	  } -ArgumentList $tasks, $scriptblock
+	  $results = Wait-Job $myJob | Receive-Job
+	```
+	Note: Using a PSJob means the Input and Output objects will be serialized to cross the process boundries. This may have side-effects. Be aware of how your objects behave with serialization before using a PSJob.
+
+-quiet 
+
+	Suppresses the calls to Write-Progress.
+
+-PassThru
+
+	Pass the original object from timed out tasks thru the pipeline. Use this if your Input and Output objects are of the same type and you need your results to contain all objects, including the ones that timed out.
+
 Changes have been submitted upstream in https://github.com/RamblingCookieMonster/PowerShell/pull/1

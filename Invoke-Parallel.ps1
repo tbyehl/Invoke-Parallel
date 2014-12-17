@@ -58,6 +58,10 @@
 
 		Disable progress bar.
 
+	.PARAMETER PassThru
+
+		Pass objects from timed out threads thru the pipeline. 
+
     .EXAMPLE
         Each example uses Test-ForPacs.ps1 which includes the following code:
             param($computer)
@@ -235,6 +239,8 @@
 							#add logging details and cleanup
                             $log.status = "TimedOut"
                             Write-verbose ($log | convertto-csv -Delimiter ";" -NoTypeInformation)[1]
+
+							if ($PassThru) { $runspace.object }
 
                             #Depending on how it hangs, we could still get stuck here as dispose calls a synchronous method on the powershell instance
                             if ($noCloseOnTimeout) { $runspace.powershell.dispose() }
